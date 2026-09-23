@@ -66,6 +66,8 @@ permissively-licensed resources; avoid or carefully isolate copyleft ones.
 ## Additional Documentation
 Detailed, longer-lived docs live in [docs/](docs/) rather than here, so this
 file stays short:
+- [docs/requirements.md](docs/requirements.md) — functional requirements and
+  open product questions
 - [docs/architecture.md](docs/architecture.md) — how the pieces fit together
 - [docs/setup.md](docs/setup.md) — detailed dev environment setup
 - [docs/security.md](docs/security.md) — security considerations

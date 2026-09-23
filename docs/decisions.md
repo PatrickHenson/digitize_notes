@@ -24,6 +24,113 @@ history in docs/ instead.
 **Why:** AGENTS.md is read by agents on every task — keeping it scannable
 matters more as the project grows.
 
+## 2026-09-23 — Local/offline model for handwriting recognition
+**Decision:** Process captured note images with a local/offline model
+rather than a cloud OCR API.
+**Why:** Keeps handwritten note content private and usable offline; avoids
+per-use cost and API key management. Accepts a likely accuracy tradeoff
+versus top cloud services — revisit if quality is insufficient.
+
+## 2026-09-23 — Webcam capture as the primary input method
+**Decision:** v1 input is webcam capture, plus importing a single image or
+series of images. No direct scanner (TWAIN/SANE) integration for v1.
+**Why:** Camera capture covers the common case without platform-specific
+scanner driver work; image import covers anyone who already has a scanner
+workflow.
+
+## 2026-09-23 — Notebooks as folders, one file per note
+**Decision:** Organize notes into notebooks from v1 (not a flat list). Each
+notebook is a directory containing a title page, one markdown file per
+note, and a subfolder of reference images; notes and images share a name
+(`[notebook name]_[incrementing id].[filetype]`).
+**Why:** Keeps each note independently addressable as a plain file (easy to
+open, diff, back up, or move) while still grouping related notes; avoids a
+database/index the user would need to keep in sync with the filesystem.
+
+## 2026-09-23 — Capture/import UX decoupled from review/edit UX
+**Decision:** Capturing/importing pages and reviewing/editing digitized
+notes are two separate views, not one combined screen.
+**Why:** Digitization runs in the background and shouldn't block the user
+from continuing to feed in more pages; combining the views would force one
+to wait on the other.
+
+## 2026-09-23 — Queue + background worker for processing
+**Decision:** Captured/imported images land in a per-notebook
+`pending_processing/` folder; a background worker in the main process
+processes them one at a time and commits the resulting note + image into
+the notebook.
+**Why:** Decouples capture speed from (likely slower) local model
+inference, and gives a durable, inspectable on-disk queue instead of an
+in-memory one that would be lost on a crash/restart.
+
+## 2026-09-23 — Filename/id assigned at capture/import time
+**Decision:** The `[notebook name]_[incrementing id]` name is assigned the
+moment an image is captured or imported (i.e. when it's queued), not when
+background processing finishes it. An imported file's original name is
+immediately replaced with this pattern too, same as a webcam capture.
+**Why:** Keeps note ordering equal to capture/import order even though
+processing happens asynchronously and may finish out of order.
+
+## 2026-09-23 — Id format: zero-padded 4 digits, never reused
+**Decision:** `[notebook name]_[id]` uses a 4-digit zero-padded counter
+(`_0001`, `_0002`, …) that only ever increases; a deleted note's id is not
+reused.
+**Why:** Fixed-width ids sort correctly as plain strings in a file browser;
+never reusing ids avoids ever confusing a new note with a deleted one that
+happened to share a number.
+
+## 2026-09-23 — User edits are the source of truth
+**Decision:** Once a user edits a note's markdown, that edited content is
+final — the note is never overwritten by re-running the digitize pipeline
+on its source image.
+**Why:** Matches treating each note as a plain, user-owned file; automatic
+reprocessing silently overwriting a manual correction would be surprising
+and could destroy work.
+
+## 2026-09-23 — Autosave, no explicit save action
+**Decision:** The markdown editor autosaves (debounced after typing stops,
+and on switching notes/closing); there's no separate save button.
+**Why:** User edits are the source of truth — requiring a manual save adds
+a way to lose work by forgetting it, with no real upside.
+
+## 2026-09-23 — Queued notes appear immediately, grayed out
+**Decision:** A note appears in the Review/Edit list the moment it's
+queued (id already assigned), shown grayed out until the background worker
+finishes it.
+**Why:** Gives processing visibility and a natural place to surface a
+failure, without a separate progress-counter UI.
+
+## 2026-09-23 — Cancel only while still queued
+**Decision:** A user can remove a note from the queue only before the
+worker has started processing it; once started, it runs to completion.
+**Why:** Nothing is committed yet for a queued item, so removal is trivial;
+mid-flight cancellation would add real complexity for little benefit — a
+finished note can just be deleted afterward.
+
+## 2026-09-23 — Single global background worker
+**Decision:** One background worker processes one image at a time across
+all notebooks, rather than parallel workers per notebook.
+**Why:** Local model inference is likely CPU/GPU-bound; serializing keeps
+resource usage predictable, especially for large batch imports.
+
+## 2026-09-23 — Restrict notebook-name input rather than sanitize after
+**Decision:** The notebook name input disallows characters invalid on
+Windows/macOS/Linux (`\ / : * ? " < > |`, control characters) and trims
+trailing dots/spaces, instead of silently rewriting an invalid name.
+**Why:** Predictable — the user sees exactly what will become the
+directory name, with no surprise renames.
+
+## 2026-09-23 — Right-click context menu for thumbnail actions
+**Decision:** Thumbnail actions (retry, delete, remove from queue) are
+reached via a right-click context menu, state-appropriate to the note
+(queued/failed/completed), rather than dedicated per-thumbnail buttons. A
+failed thumbnail also gets a passive warning badge.
+**Why:** Actions vary by state and will likely grow over time; a context
+menu scales without cluttering each thumbnail with icon buttons, and
+matches the file-manager mental model the rest of the app already uses.
+Confirms failure handling: one automatic retry, then manual retry/delete
+via this menu.
+
 ## 2026-09-22 — Prefer permissive licenses; avoid/isolate copyleft
 **Decision:** New dependencies should be permissively licensed
 (Apache-2.0/MIT/BSD-family compatible); GPL/AGPL and similarly restrictive
