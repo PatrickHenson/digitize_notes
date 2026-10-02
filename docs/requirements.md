@@ -4,6 +4,15 @@ High-level functional requirements. This is a living document — update it as
 decisions are made; move an "Open Questions" item into the numbered list
 once it's resolved.
 
+## Goals
+The point of this project, stated directly (2026-10-01) — use these to
+break ties when a design choice isn't otherwise obvious:
+1. **Searchable** — digitized notes should be easy to search.
+2. **Track missed TODOs** — incomplete items should surface for review,
+   not get buried on a page no one reopens.
+3. **Agent-usable** — an agent should be able to find information in notes
+   and take action on it, not just a human reading the markdown.
+
 ## Functional requirements
 1. **Notebooks** — a user creates a new notebook by choosing/configuring a
    directory for it, or opens an existing notebook directory to continue
@@ -11,8 +20,10 @@ once it's resolved.
 2. **Capture / import** — note pages can be captured via webcam (with a
    live preview shown before capture) or imported as a single image or a
    series of images. Accepted formats: jpg, png, pdf.
-3. **Image → markdown processing** — TBD. Next discussion topic (note
-   content + model type).
+3. **Image → markdown processing** — the handwriting-to-markdown
+   transcription rules are defined in
+   [docs/note-format.md](note-format.md). Model/pipeline choice is still
+   TBD (see Open Questions).
 4. **Capture/Import UX is separate from Review/Edit UX** — two distinct
    views:
    - **Capture/Import view:** live camera preview + capture trigger, or a
@@ -79,9 +90,35 @@ once it's resolved.
     retry; if that also fails, the note's slot shows the failed badge
     (item 17) and the context menu offers "Retry" (manually re-queue it)
     or "Delete" (discard it).
+19. **TODO tracking.** An in-app view aggregates every incomplete (`- [ ]`)
+    TODO live, scanned across *all* notebooks — not a separately
+    maintained file, so it can't drift from the note files that are the
+    real source of truth.
+20. **Multi-entry pages stay one file.** A page with multiple handwritten
+    entries (separated by a new large title or a horizontal line) still
+    produces exactly one note file per source image — each entry becomes a
+    `##` section or `---`-divided block within that file, rather than
+    splitting into separate note files. See
+    [docs/note-format.md](note-format.md).
+21. **Multi-page notes are linked automatically.** A new page with no
+    header, or a header matching the previous entry's title (optionally
+    with a "continued" marker), is assumed to continue that entry; frontmatter
+    `continues_from`/`continues_to` records the link. No manual override
+    yet — a correction feedback loop is a future discussion. See
+    [docs/note-format.md](note-format.md).
+22. **Frontmatter metadata.** Each note file gets a YAML frontmatter block:
+    `notebook`, `id`, `date` (from the handwritten header, if present),
+    `captured_at`, `continues_from`/`continues_to`, and `tags` (starts
+    empty). See [docs/note-format.md](note-format.md).
 
 ## Open Questions
 Still need answers — flagging these so we can work through them:
 
-- **Image → markdown processing (item 3):** what model/pipeline, and what
-  markdown structure it should produce.
+- **Image → markdown processing — model/pipeline:** what local/offline
+  model actually performs the handwriting recognition.
+- **Multi-page continuation feedback loop:** how does a user fix it when
+  the automatic continuation guess (item 21) is wrong — relink two notes,
+  or split a wrongly-merged one? Deferred.
+- **Notebook tagging (future):** the user may want to tag notebooks as
+  work/personal (or similar) to filter the TODO view by category. Not
+  blocking v1, but worth keeping in mind when designing notebook metadata.

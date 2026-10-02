@@ -131,6 +131,49 @@ matches the file-manager mental model the rest of the app already uses.
 Confirms failure handling: one automatic retry, then manual retry/delete
 via this menu.
 
+## 2026-10-01 — Note format matches the user's own bujo shorthand
+**Decision:** Transcription maps the user's existing bullet-journal
+notation directly: dash → bullet, star → bold bullet (important), open
+circle → `- [ ]`, circle-with-X → `- [x]`, page header (+ optional date)
+→ `## header — YYYY-MM-DD` with the date normalized to ISO 8601. See
+[note-format.md](note-format.md).
+**Why:** The user already has a consistent personal notation; transcribing
+it faithfully (rather than inventing a new scheme) keeps digitized notes
+recognizable and keeps the mapping mechanical/unambiguous for the model.
+
+## 2026-10-01 — Multi-entry pages stay one file per page
+**Decision:** A page with multiple handwritten entries (new large title, or
+a horizontal-line break) is still exactly one note file per source image;
+each entry becomes a `##` section or `---` block inside that file.
+**Why:** Preserves the existing one-image-one-note naming/storage rule
+rather than introducing new id/naming logic for sub-page entries.
+
+## 2026-10-01 — TODO tracking is a live, global, scanned view
+**Decision:** Incomplete TODOs are tracked via a view that scans `- [ ]`
+items across *all* notebooks live, not a separately maintained file.
+**Why:** The note files are already the source of truth; a generated
+todos.md would be a second copy that could drift. Scoped globally (not
+per-notebook) since missed items should surface regardless of which
+notebook they're in — future notebook tags (work/personal) may add
+filtering on top of this view.
+
+## 2026-10-01 — Note files get YAML frontmatter
+**Decision:** Each note file carries a small frontmatter block (notebook,
+id, date, captured_at, continues_from/continues_to, tags).
+**Why:** Directly serves the project's search, TODO-tracking, and
+agent-use goals — structured fields are reliably parseable without an
+agent or search tool having to re-derive them from prose or filenames.
+
+## 2026-10-01 — Multi-page continuation detected automatically
+**Decision:** A new page with no header, or a header matching the previous
+entry's title (optionally with a "continued" marker), is automatically
+linked as a continuation via frontmatter `continues_from`/`continues_to`.
+No manual correction UI yet.
+**Why:** Matches how the user already titles continued entries on paper
+("Title" / "Title continued..."), so the common case needs no extra user
+action. A feedback loop for wrong guesses is deferred rather than
+over-building before it's clear how often guesses actually miss.
+
 ## 2026-09-22 — Prefer permissive licenses; avoid/isolate copyleft
 **Decision:** New dependencies should be permissively licensed
 (Apache-2.0/MIT/BSD-family compatible); GPL/AGPL and similarly restrictive

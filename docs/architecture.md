@@ -38,15 +38,23 @@ can keep feeding in pages while earlier ones are still processing:
 2. **Background processing** — a worker in the main process pulls the next
    queued image, runs it through a local/offline handwriting-recognition
    model (model choice: TBD, see [requirements.md](requirements.md)) to
-   produce markdown.
+   produce markdown following the transcription rules in
+   [note-format.md](note-format.md), including YAML frontmatter and
+   automatic multi-page continuation linking.
 3. **Commit** — the worker writes the note's `.md` file and moves the
    source image into the notebook's images folder, both under the shared
    `[notebook name]_[incrementing id]` name. This flips the note's already-
    visible (grayed out) list entry to its finished state.
 4. **Edit** — user corrects the markdown in the editable pane; each note
-   stays a plain `.md` file inside its notebook directory.
+   stays a plain `.md` file inside its notebook directory. Edits are the
+   source of truth and are never overwritten by reprocessing.
+
+## TODO tracking (planned)
+A view, reachable independent of which notebook is open, scans every
+notebook's committed notes live for incomplete (`- [ ]`) items and lists
+them — not a separately stored file, so it can't drift from the notes.
 
 ## Open questions
 See [requirements.md](requirements.md)'s "Open Questions" section for the
-current list (processing model, id assignment timing, failure handling,
-save behavior, etc.).
+current list (processing model, continuation-correction feedback loop,
+notebook tagging, etc.).
