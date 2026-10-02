@@ -196,6 +196,15 @@ multi-tenant serving, not a single user's occasional batch-import of a few
 dozen images — not worth losing cross-platform support for. See
 [model-pipeline.md](model-pipeline.md).
 
+## 2026-10-01 — Notebook tags via title-page frontmatter
+**Decision:** Notebooks are tagged (e.g. work/personal) through a
+comma-separated text input shown at notebook-creation time, stored in the
+title page's YAML frontmatter (`tags`). The global TODO view can filter by
+these tags.
+**Why:** Resolves the earlier open question about differentiating
+notebooks for TODO filtering, using the same frontmatter mechanism already
+established for notes — no new storage concept needed.
+
 ## 2026-09-22 — Prefer permissive licenses; avoid/isolate copyleft
 **Decision:** New dependencies should be permissively licensed
 (Apache-2.0/MIT/BSD-family compatible); GPL/AGPL and similarly restrictive

@@ -6,6 +6,25 @@ file is structured. Serves the project's goals (see "Goals" in
 [requirements.md](requirements.md)): searchable, TODO-trackable,
 agent-usable.
 
+## Title page
+Each notebook's title page carries its own YAML frontmatter:
+
+```yaml
+---
+title: <notebook title>
+date: <date or date range>
+tags: [work, personal]   # comma-separated input at notebook creation
+---
+
+<free-text description>
+```
+
+`tags` is how a notebook gets categorized (e.g. work/personal) — set once
+at notebook-creation time via a second text input (comma-separated) next
+to the title/directory field, editable later by hand since it's a plain
+file. These tags are what the global TODO view (see requirements.md) can
+filter by.
+
 ## Page header
 A handwritten page header, with an optional date on the same line, becomes:
 

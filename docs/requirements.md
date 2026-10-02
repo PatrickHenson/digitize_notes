@@ -57,8 +57,9 @@ break ties when a design choice isn't otherwise obvious:
    order stable regardless of processing order. An imported file (which
    arrives with its own original filename) is renamed to match this pattern
    as soon as it's queued, same as a webcam capture.
-9. **Title page contents:** title, date or date range, and a free-text
-   description.
+9. **Title page contents:** YAML frontmatter (`title`, `date`/date range,
+   `tags`) followed by a free-text description. See
+   [docs/note-format.md](note-format.md).
 10. **Id format:** zero-padded to 4 digits (e.g. `_0001`). The counter only
     ever increases — a deleted note's id is never reused, so gaps in the
     sequence are expected and fine.
@@ -96,7 +97,8 @@ break ties when a design choice isn't otherwise obvious:
 19. **TODO tracking.** An in-app view aggregates every incomplete (`- [ ]`)
     TODO live, scanned across *all* notebooks — not a separately
     maintained file, so it can't drift from the note files that are the
-    real source of truth.
+    real source of truth. Filterable by notebook tag (item 24, e.g.
+    work/personal).
 20. **Multi-entry pages stay one file.** A page with multiple handwritten
     entries (separated by a new large title or a horizontal line) still
     produces exactly one note file per source image — each entry becomes a
@@ -118,6 +120,11 @@ break ties when a design choice isn't otherwise obvious:
     backend on NVIDIA hardware, Metal on macOS, CPU fallback elsewhere.
     One engine for all platforms; no separate server process for the user
     to install or run. See [docs/model-pipeline.md](model-pipeline.md).
+24. **Notebook tags.** When creating a new notebook, a second text input
+    (alongside the title/directory field) takes comma-separated tags
+    (e.g. `work, personal`), stored in the title page's frontmatter. The
+    global TODO view (item 19) can filter by these tags. See
+    [docs/note-format.md](note-format.md).
 
 ## Open Questions
 Still need answers — flagging these so we can work through them:
@@ -130,6 +137,3 @@ Still need answers — flagging these so we can work through them:
 - **Multi-page continuation feedback loop:** how does a user fix it when
   the automatic continuation guess (item 21) is wrong — relink two notes,
   or split a wrongly-merged one? Deferred.
-- **Notebook tagging (future):** the user may want to tag notebooks as
-  work/personal (or similar) to filter the TODO view by category. Not
-  blocking v1, but worth keeping in mind when designing notebook metadata.
