@@ -1,0 +1,6 @@
+# Model evaluation: never commit sample page images or their outputs —
+# samples are often real (potentially confidential) handwritten notes.
+/eval/sample_images/*
+!/eval/sample_images/.gitkeep
+/eval/results/*
+!/eval/results/.gitkeep

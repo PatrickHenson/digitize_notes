@@ -57,3 +57,9 @@ policy (see [licensing.md](licensing.md)).
 This is a fast-moving space — re-verify model availability, llama.cpp
 multimodal support, and licensing at implementation time rather than
 trusting this list blindly.
+
+## Evaluating candidates
+See [../eval/](../eval/) for a small local harness (via Ollama) that runs
+sample page images through each candidate model and saves outputs for
+side-by-side comparison. Sample images and results are git-ignored —
+real/confidential handwriting samples never get committed.
