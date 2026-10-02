@@ -223,6 +223,19 @@ nested indented list, not a fenced code block.
 it into inert literal text, breaking the live TODO-tracking goal for
 anything inside the bracket.
 
+## 2026-10-01 — Date extraction moved out of the model, into deterministic code
+**Decision:** The VLM is never asked to produce a date. It transcribes the
+header line verbatim; a date is then extracted via regex against that
+verbatim text and normalized to ISO 8601, with a missing year filled from
+the real capture timestamp rather than guessed.
+**Why:** Verified bug — Qwen2.5-VL fabricated a plausible date on a page
+with no date at all, even with an explicit "never invent a date"
+instruction. Negative instructions don't reliably suppress a strong
+training-data prior; the only reliable fix is to remove the model's
+opportunity to invent one at all. Verified fixed against all 5 real
+sample pages (the no-date page stayed clean; dated pages resolved to the
+correct year from capture time, not a guessed one).
+
 ## 2026-09-22 — Prefer permissive licenses; avoid/isolate copyleft
 **Decision:** New dependencies should be permissively licensed
 (Apache-2.0/MIT/BSD-family compatible); GPL/AGPL and similarly restrictive

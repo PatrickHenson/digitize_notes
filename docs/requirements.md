@@ -127,12 +127,19 @@ break ties when a design choice isn't otherwise obvious:
     [docs/note-format.md](note-format.md).
 25. **VLM pinned: Qwen2.5-VL (7B).** Chosen after evaluating against
     MiniCPM-V on 5 real handwritten sample pages — decisively more
-    accurate, fewer transcription errors, no hallucinated content. See
-    [docs/model-pipeline.md](model-pipeline.md) for results and known
-    (non-blocking) limitations: inconsistent symbol-to-markdown mapping on
-    messy handwriting, and occasional fabricated dates (mitigated by
-    treating the model-extracted `date` field as cosmetic, never
-    load-bearing — `captured_at` is the reliable, system-set timestamp).
+    accurate, fewer transcription errors, no hallucinated content. One
+    known non-blocking limitation remains: inconsistent symbol-to-markdown
+    mapping on messy handwriting (needs few-shot prompting at
+    implementation time). See [docs/model-pipeline.md](model-pipeline.md).
+27. **Date extraction is deterministic, not model-generated.** The model
+    only transcribes the header line verbatim; a date is extracted by
+    regex against that verbatim text and normalized to ISO 8601, with a
+    missing year filled from the real capture timestamp. If no date-shaped
+    text was actually transcribed, no date is emitted — the model is never
+    asked to produce a date, so it cannot fabricate one. This fixed a
+    real, verified fabrication bug (the model previously invented a
+    plausible date on a page that had none, despite being told not to).
+    See [docs/note-format.md](note-format.md).
 26. **Bracket/brace grouping.** When handwriting visually groups several
     lines with a bracket, render them as a nested indented list rather
     than a fenced code block — a code block would turn any `- [ ]`

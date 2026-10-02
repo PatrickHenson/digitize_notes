@@ -43,7 +43,9 @@ async function main() {
       process.stdout.write(`\n[${model}] ${image} ... `);
       const start = Date.now();
       try {
-        const markdown = await transcribe(model, imagePath);
+        const raw = await transcribe(model, imagePath);
+        const capturedAt = capturedAtFromFilename(image) ?? fs.statSync(imagePath).mtime;
+        const markdown = postProcess(raw, capturedAt);
         const outPath = path.join(modelDir, `${path.parse(image).name}.md`);
         fs.writeFileSync(outPath, markdown);
         const seconds = ((Date.now() - start) / 1000).toFixed(1);
@@ -80,6 +82,81 @@ async function transcribe(model, imagePath) {
 
 function sanitize(name) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_');
+}
+
+// Pixel camera filenames encode real capture time: PXL_YYYYMMDD_HHMMSSmmm.jpg
+// Used as ground truth for the capture date — never trust the model to guess it.
+function capturedAtFromFilename(filename) {
+  const m = filename.match(/PXL_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);
+  if (!m) return null;
+  const [, y, mo, d, h, mi, s] = m;
+  return new Date(`${y}-${mo}-${d}T${h}:${mi}:${s}`);
+}
+
+// The model is never trusted to produce a date directly (it hallucinates one
+// even when told not to — negative instructions don't reliably suppress a
+// strong training-data prior). Instead it transcribes the header verbatim,
+// and a date is extracted here via regex: either the exact text it saw
+// contains a date-shaped substring, or no date is emitted. No fabrication
+// is possible because nothing here *invents* anything, it only matches.
+const DATE_RE = /\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/;
+
+function postProcess(raw, referenceDate) {
+  let markdown = stripCodeFence(raw.trim());
+
+  let firstIsoDate = null;
+  const lines = markdown.split('\n').map((line) => {
+    if (!line.startsWith('## ')) return line;
+    const match = line.match(DATE_RE);
+    if (!match) return line;
+
+    const iso = normalizeDate(match, referenceDate);
+    if (!iso) return line;
+    if (!firstIsoDate) firstIsoDate = iso;
+
+    const headerText = line.slice(3).replace(DATE_RE, '').trim().replace(/[—-]\s*$/, '').trim();
+    return `## ${headerText} — ${iso}`;
+  });
+  markdown = lines.join('\n');
+
+  return setFrontmatterFields(markdown, {
+    date: firstIsoDate,
+    captured_at: referenceDate.toISOString(),
+  });
+}
+
+function normalizeDate([, monthStr, dayStr, yearStr], referenceDate) {
+  const month = parseInt(monthStr, 10);
+  const day = parseInt(dayStr, 10);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+
+  let year = yearStr
+    ? (yearStr.length === 2 ? 2000 + parseInt(yearStr, 10) : parseInt(yearStr, 10))
+    : referenceDate.getFullYear();
+
+  const iso = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  return Number.isNaN(Date.parse(iso)) ? null : iso;
+}
+
+function stripCodeFence(text) {
+  const fenced = text.match(/^```[a-z]*\n([\s\S]*?)\n```$/);
+  return fenced ? fenced[1].trim() : text;
+}
+
+function setFrontmatterFields(markdown, fields) {
+  const match = markdown.match(/^---\n([\s\S]*?)\n---\n?/);
+  const body = match ? markdown.slice(match[0].length) : markdown;
+  const existing = match ? match[1] : '';
+
+  const kept = existing
+    .split('\n')
+    .filter((line) => line.trim() && !/^(date|captured_at):/.test(line.trim()));
+
+  const inserted = Object.entries(fields)
+    .filter(([, value]) => value !== null && value !== undefined)
+    .map(([key, value]) => `${key}: "${value}"`);
+
+  return `---\n${[...inserted, ...kept].join('\n')}\n---\n\n${body.trim()}\n`;
 }
 
 main();

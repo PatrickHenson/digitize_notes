@@ -41,7 +41,10 @@ can keep feeding in pages while earlier ones are still processing:
    platform — see [model-pipeline.md](model-pipeline.md)), prompted with
    the transcription rules in [note-format.md](note-format.md) to produce
    markdown including YAML frontmatter and automatic multi-page
-   continuation linking.
+   continuation linking. The model transcribes verbatim only — it never
+   produces a date; a post-processing step extracts one deterministically
+   (regex against the verbatim header, year from the real capture
+   timestamp) to make date fabrication structurally impossible.
 3. **Commit** — the worker writes the note's `.md` file and moves the
    source image into the notebook's images folder, both under the shared
    `[notebook name]_[incrementing id]` name. This flips the note's already-

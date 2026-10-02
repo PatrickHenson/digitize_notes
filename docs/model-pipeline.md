@@ -46,18 +46,32 @@ transcription accuracy — MiniCPM-V made real word-level errors
 that don't exist in the source. Qwen2.5-VL's raw transcription stayed
 close to the source text throughout.
 
-**Known limitations, not blocking this pin** (to address at
-implementation time, not via further prompt tuning):
+**Known limitation, not blocking this pin** (to address at implementation
+time, not via further prompt tuning):
 - Symbol-to-markdown mapping (star→bold, circle→checkbox) is applied
   inconsistently on real handwriting — sometimes the literal glyph is
   preserved or silently dropped instead of transformed. Likely needs
   few-shot examples in the real prompt, not just instructions.
-- The model will sometimes fabricate a plausible-looking date in
-  frontmatter even when a page has no date at all, despite an explicit
-  "never invent a date" instruction. The note frontmatter schema already
-  separates the model-extracted `date` (best-effort, from the page) from
-  `captured_at` (system-set, always reliable) — treat `date` as cosmetic,
-  never load-bearing for anything the app depends on.
+
+**Date fabrication — solved, not a limitation.** The model would
+fabricate a plausible-looking date even on pages with none, regardless of
+an explicit "never invent a date" instruction — negative instructions
+don't reliably suppress a strong training-data prior. The fix is
+architectural, not more prompt wording: **the model is never asked to
+produce a date at all.** It only transcribes the header line verbatim
+(including whatever date-shaped text physically appears on it, unedited);
+a date is then extracted deterministically by regex against that verbatim
+text, with the year resolved from the image's actual capture timestamp
+(`captured_at`) rather than guessed by the model. If the regex finds
+nothing date-shaped, no date is emitted — fabrication is structurally
+impossible, since nothing in the pipeline is capable of inventing text
+that wasn't transcribed. Verified against all 5 real sample pages,
+including the one with no date at all (stayed clean) and two with dates
+(resolved to the correct year, 2026, not a guessed one). See
+[eval/evaluate-models.js](../eval/evaluate-models.js)'s `postProcess`/
+`normalizeDate` functions for the reference implementation; the real app
+applies the same approach, using the page's actual capture time instead
+of a filename-derived one.
 
 **Rejected:**
 - **MiniCPM-V** (Apache-2.0) — accuracy was consistently worse on real

@@ -32,8 +32,18 @@ A handwritten page header, with an optional date on the same line, becomes:
 ## {header} — {date}
 ```
 
-The date is normalized to ISO 8601 (`YYYY-MM-DD`) regardless of the
-handwritten shorthand (e.g. "10/1" → `2026-10-01`).
+**The date is never produced by the model.** The VLM only transcribes the
+header line verbatim (date text included, unedited); a date is then
+extracted deterministically by regex against that verbatim text and
+normalized to ISO 8601 (`YYYY-MM-DD`) — a missing year is filled in from
+the image's real capture timestamp, never guessed. If no date-shaped text
+is found in the verbatim transcription, no date is emitted. This is a
+blocking-bug fix, not a style choice: asking the model to produce the
+date directly caused it to fabricate a plausible one even on pages with
+no date at all, despite explicit instructions not to — moving date
+extraction out of the model and into deterministic code makes that
+fabrication structurally impossible. See
+[model-pipeline.md](model-pipeline.md).
 
 ## Shorthand → markdown
 | Handwritten mark                                         | Meaning          | Markdown              |
