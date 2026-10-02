@@ -5,7 +5,8 @@ digitize_notes is a cross-platform desktop application (Electron + TypeScript)
 that lets a user scan or import images of handwritten notes, preview them, and
 digitize them into markdown files.
 
-Status: pre-scaffold. No application code exists yet — see "Next Steps" below.
+Status: scaffolded (electron-vite, React + TypeScript). No real
+application logic yet beyond the default scaffold screen.
 
 ## Environment
 - Runtime: Node.js (LTS) + Electron
@@ -14,25 +15,23 @@ Status: pre-scaffold. No application code exists yet — see "Next Steps" below.
 - Target platforms: Linux, Windows, macOS
 
 ## Setup Commands
-> Proposed — not yet runnable. See docs/setup.md for the scaffolding plan.
 - Install dependencies: `npm install`
 - Run in development: `npm run dev`
 
 ## Build Commands
-> Proposed — confirm before scaffolding.
-- Production build: `npm run build`
-- Package installers for all platforms: `npm run package`
+- Typecheck + build main/preload/renderer: `npm run build`
+- Package an installer: `npm run build:linux` / `build:win` / `build:mac`
 
 ## Test Commands
-> Proposed — confirm before scaffolding.
 - Unit tests: `npm run test`
 - Unit tests (watch mode): `npm run test:watch`
-- End-to-end tests: `npm run test:e2e`
+- No end-to-end tests yet (Playwright) — deferred until there's a real UI
+  flow worth testing end-to-end; see docs/setup.md.
 
 ## Lint / Format Commands
-> Proposed — confirm before scaffolding.
 - Lint: `npm run lint`
 - Format: `npm run format`
+- Typecheck only (no build): `npm run typecheck`
 
 ## Code Style
 - TypeScript strict mode enabled.
@@ -81,6 +80,6 @@ file stays short:
   chose X over Y)
 
 ## Next Steps
-The project has not been scaffolded yet. Recommended next step: scaffold with
-`electron-vite` (Electron + Vite + TypeScript template), then replace the
-"Proposed" markers above with real, verified commands.
+Scaffold is in place and verified (typecheck, lint, build all pass). Real
+application logic (capture/import UX, processing queue, note format
+pipeline — see docs/requirements.md) hasn't been built yet.

@@ -244,3 +244,17 @@ necessary. See [licensing.md](licensing.md).
 **Why:** This project is published under Apache-2.0; copyleft dependencies
 bundled into the distributed app risk relicensing the whole distributed
 work.
+
+## 2026-10-02 — Scaffolded with electron-vite (React + TS), Electron 44
+**Decision:** Scaffolded via `@quick-start/electron`'s react-ts template
+(the official electron-vite starter), then upgraded Electron from the
+scaffold's default ^39 to ^44 immediately (resolved 2 high-severity
+advisories in Electron's sandbox/webview handling — `npm audit` was clean
+afterward). Vitest wired up now for unit tests; Playwright/e2e deferred
+until there's a real UI flow worth testing end-to-end. `eval/` is excluded
+from the app's ESLint config since it's a standalone dev tool, not shipped
+app code.
+**Why:** Matches the already-decided stack (Electron + TypeScript + npm,
+React per this session's UI-framework decision); starting on a patched
+Electron version costs nothing this early and avoids shipping known
+sandbox-escape-adjacent advisories from day one.

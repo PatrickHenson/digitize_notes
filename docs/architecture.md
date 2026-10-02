@@ -1,8 +1,9 @@
 # Architecture
 
-Status: planned, not yet implemented. This describes the intended shape of
-the system so future decisions have something to react to — update it as the
-real structure diverges.
+Status: scaffolded, not yet implemented. The process/directory structure
+below exists as the electron-vite default scaffold; none of the real
+application logic described here (capture, queue, pipeline) has been
+built yet. Update this doc as the real structure diverges.
 
 ## Processes (Electron)
 - **Main** (`src/main`) — owns the app lifecycle, filesystem access, the

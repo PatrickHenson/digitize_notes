@@ -4,3 +4,11 @@
 !/eval/sample_images/.gitkeep
 /eval/results/*
 !/eval/results/.gitkeep
+
+# Electron app (electron-vite scaffold)
+node_modules
+dist
+out
+.DS_Store
+.eslintcache
+*.log*
