@@ -70,6 +70,8 @@ file stays short:
   open product questions
 - [docs/note-format.md](docs/note-format.md) — handwriting shorthand →
   markdown transcription rules
+- [docs/model-pipeline.md](docs/model-pipeline.md) — VLM approach, inference
+  runtime, and model candidates
 - [docs/architecture.md](docs/architecture.md) — how the pieces fit together
 - [docs/setup.md](docs/setup.md) — detailed dev environment setup
 - [docs/security.md](docs/security.md) — security considerations

@@ -22,8 +22,11 @@ break ties when a design choice isn't otherwise obvious:
    series of images. Accepted formats: jpg, png, pdf.
 3. **Image → markdown processing** — the handwriting-to-markdown
    transcription rules are defined in
-   [docs/note-format.md](note-format.md). Model/pipeline choice is still
-   TBD (see Open Questions).
+   [docs/note-format.md](note-format.md). Processed by a local/offline
+   vision-language model (VLM), prompted with those rules, rather than a
+   traditional OCR/HTR engine — see
+   [docs/model-pipeline.md](model-pipeline.md). Exact model is still TBD
+   (see Open Questions); the inference runtime is decided.
 4. **Capture/Import UX is separate from Review/Edit UX** — two distinct
    views:
    - **Capture/Import view:** live camera preview + capture trigger, or a
@@ -110,12 +113,20 @@ break ties when a design choice isn't otherwise obvious:
     `notebook`, `id`, `date` (from the handwritten header, if present),
     `captured_at`, `continues_from`/`continues_to`, and `tags` (starts
     empty). See [docs/note-format.md](note-format.md).
+23. **Inference runtime.** The VLM runs embedded in the Electron main
+    process via Node bindings to llama.cpp (`node-llama-cpp`) — CUDA
+    backend on NVIDIA hardware, Metal on macOS, CPU fallback elsewhere.
+    One engine for all platforms; no separate server process for the user
+    to install or run. See [docs/model-pipeline.md](model-pipeline.md).
 
 ## Open Questions
 Still need answers — flagging these so we can work through them:
 
-- **Image → markdown processing — model/pipeline:** what local/offline
-  model actually performs the handwriting recognition.
+- **Exact VLM to use:** shortlist is Qwen2.5-VL and MiniCPM-V (both
+  Apache-2.0, both have document/OCR strengths) — needs empirical
+  validation against real handwriting samples and current llama.cpp
+  multimodal support before pinning one. See
+  [docs/model-pipeline.md](model-pipeline.md).
 - **Multi-page continuation feedback loop:** how does a user fix it when
   the automatic continuation guess (item 21) is wrong — relink two notes,
   or split a wrongly-merged one? Deferred.

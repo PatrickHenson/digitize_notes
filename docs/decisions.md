@@ -174,6 +174,28 @@ No manual correction UI yet.
 action. A feedback loop for wrong guesses is deferred rather than
 over-building before it's clear how often guesses actually miss.
 
+## 2026-10-01 — VLM over OCR/HTR for image→markdown processing
+**Decision:** Process page images with a local vision-language model
+prompted with the transcription rules, not a traditional OCR/handwriting-
+recognition engine.
+**Why:** The note format's shorthand encodes meaning (circle = open TODO,
+star = important, etc.), not just characters. An OCR/HTR model only
+outputs flat text; a promptable VLM can apply the semantic mapping and
+layout understanding in the same pass. Accepted tradeoff: heavier compute
+and accuracy that needs empirical validation on real handwriting, versus a
+smaller dedicated HTR model. See [model-pipeline.md](model-pipeline.md).
+
+## 2026-10-01 — Embedded cross-platform inference (node-llama-cpp)
+**Decision:** Run the VLM embedded in the Electron main process via
+`node-llama-cpp` (CUDA/Metal/CPU backends), not a Python high-throughput
+engine (vLLM/TensorRT-LLM) and not an externally-run server (e.g. Ollama).
+**Why:** The app must support Linux/Windows/macOS; llama.cpp is the option
+that runs everywhere with one codebase and no extra software for the user
+to install. vLLM/TensorRT-LLM's batched-throughput advantage is built for
+multi-tenant serving, not a single user's occasional batch-import of a few
+dozen images — not worth losing cross-platform support for. See
+[model-pipeline.md](model-pipeline.md).
+
 ## 2026-09-22 — Prefer permissive licenses; avoid/isolate copyleft
 **Decision:** New dependencies should be permissively licensed
 (Apache-2.0/MIT/BSD-family compatible); GPL/AGPL and similarly restrictive
