@@ -36,17 +36,29 @@ The date is normalized to ISO 8601 (`YYYY-MM-DD`) regardless of the
 handwritten shorthand (e.g. "10/1" → `2026-10-01`).
 
 ## Shorthand → markdown
-| Handwritten mark             | Meaning          | Markdown              |
-|-------------------------------|------------------|------------------------|
-| `-` (dash)                    | New note/line    | `- {text}`             |
+| Handwritten mark                                         | Meaning          | Markdown              |
+|------------------------------------------------------------|------------------|------------------------|
+| `-` (dash), `\` (diagonal tick), `→`/`›` (arrow/chevron)    | New note/line    | `- {text}`             |
 | `*` (star)                    | Important note   | `- **{text}**`         |
 | `○` (open circle)              | Open TODO        | `- [ ] {text}`         |
 | `⊗` (circle with X)            | Completed TODO   | `- [x] {text}`         |
 | New large title mid-page       | New section      | New `##` heading       |
 | Horizontal line mid-page       | Visual break     | `---`                  |
 
+Dash, diagonal tick, and arrow/chevron are bullet-point variants the user
+writes interchangeably — all mean the same thing. (The user also sometimes
+uses an arrow to visually link two items on the page; that linking
+relationship isn't captured in the markdown output — it still just renders
+as a plain bullet.)
+
 Indentation in the handwritten text is preserved as nested list
 indentation at the matching level.
+
+A bracket/brace drawn alongside several lines to visually group them is
+rendered as a nested indented list (extending the indentation rule above),
+never as a fenced code block — a code block would turn any `- [ ]`
+checkbox or `**bold**` inside it into inert literal text, breaking the
+TODO-tracking goal for anything caught inside the bracket.
 
 ## One note file per page
 Each captured/imported page image produces exactly one note markdown file

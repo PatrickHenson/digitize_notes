@@ -205,6 +205,24 @@ these tags.
 notebooks for TODO filtering, using the same frontmatter mechanism already
 established for notes — no new storage concept needed.
 
+## 2026-10-01 — VLM pinned: Qwen2.5-VL (7B)
+**Decision:** Use Qwen2.5-VL (7B) as the production handwriting-recognition
+model, not MiniCPM-V.
+**Why:** Evaluated both against 5 real handwritten sample pages (via the
+`eval/` harness). Qwen2.5-VL's raw transcription stayed close to the
+source throughout; MiniCPM-V made real word-level errors and hallucinated
+duplicate lines on two pages. Known limitations (inconsistent
+symbol-to-markdown mapping, occasional fabricated dates) are accepted as
+implementation-time work (few-shot prompting, treating the extracted
+`date` field as cosmetic) rather than reasons to keep evaluating further.
+
+## 2026-10-01 — Bracket/brace grouping → nested indentation, not code block
+**Decision:** A handwritten bracket grouping several lines renders as a
+nested indented list, not a fenced code block.
+**Why:** A code block would turn any `- [ ]` checkbox or `**bold**` inside
+it into inert literal text, breaking the live TODO-tracking goal for
+anything inside the bracket.
+
 ## 2026-09-22 — Prefer permissive licenses; avoid/isolate copyleft
 **Decision:** New dependencies should be permissively licensed
 (Apache-2.0/MIT/BSD-family compatible); GPL/AGPL and similarly restrictive

@@ -37,17 +37,35 @@ need a separate solution for Mac/non-NVIDIA machines; that cost isn't
 justified for a single-user desktop app whose "batch" is a few dozen
 images from an import, not a multi-tenant workload.
 
-## Model candidates (not yet pinned)
-Shortlist to validate empirically (against real handwriting samples, and
-current llama.cpp multimodal support) before picking one:
-- **Qwen2.5-VL** (2B/7B sizes are Apache-2.0) — strong dense document/OCR
-  understanding.
-- **MiniCPM-V** (Apache-2.0) — built explicitly for efficient on-device
-  use; often has earlier/better llama.cpp multimodal tooling support.
-- **GOT-OCR2.0** (Apache-2.0) — smaller, purpose-built for structured
-  output (markdown/tables), but less of an instruction-following chat
-  model, so applying custom symbol semantics may be harder to prompt for.
-  Worth knowing as a fallback, not a primary candidate.
+## Model pinned: Qwen2.5-VL (7B)
+Evaluated against 5 real handwritten sample pages (see "Evaluating
+candidates" below) against MiniCPM-V. Qwen2.5-VL won decisively on raw
+transcription accuracy — MiniCPM-V made real word-level errors
+("Complicated" → "Complexated", "spill" → "spik", "Sovereign Environment"
+→ "Several Environment") and on two pages hallucinated duplicate lines
+that don't exist in the source. Qwen2.5-VL's raw transcription stayed
+close to the source text throughout.
+
+**Known limitations, not blocking this pin** (to address at
+implementation time, not via further prompt tuning):
+- Symbol-to-markdown mapping (star→bold, circle→checkbox) is applied
+  inconsistently on real handwriting — sometimes the literal glyph is
+  preserved or silently dropped instead of transformed. Likely needs
+  few-shot examples in the real prompt, not just instructions.
+- The model will sometimes fabricate a plausible-looking date in
+  frontmatter even when a page has no date at all, despite an explicit
+  "never invent a date" instruction. The note frontmatter schema already
+  separates the model-extracted `date` (best-effort, from the page) from
+  `captured_at` (system-set, always reliable) — treat `date` as cosmetic,
+  never load-bearing for anything the app depends on.
+
+**Rejected:**
+- **MiniCPM-V** (Apache-2.0) — accuracy was consistently worse on real
+  samples (see above).
+- **GOT-OCR2.0** (Apache-2.0) — not tested; remains a fallback idea if
+  Qwen2.5-VL proves insufficient in practice, since it's smaller/faster,
+  but is less of an instruction-following chat model so applying custom
+  symbol semantics would likely be harder to prompt for.
 
 **Explicitly avoided:** Llama-vision-based models (Llama 3.2 Vision,
 LLaVA-Llama variants) — Meta's community license carries usage

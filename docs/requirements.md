@@ -125,15 +125,23 @@ break ties when a design choice isn't otherwise obvious:
     (e.g. `work, personal`), stored in the title page's frontmatter. The
     global TODO view (item 19) can filter by these tags. See
     [docs/note-format.md](note-format.md).
+25. **VLM pinned: Qwen2.5-VL (7B).** Chosen after evaluating against
+    MiniCPM-V on 5 real handwritten sample pages — decisively more
+    accurate, fewer transcription errors, no hallucinated content. See
+    [docs/model-pipeline.md](model-pipeline.md) for results and known
+    (non-blocking) limitations: inconsistent symbol-to-markdown mapping on
+    messy handwriting, and occasional fabricated dates (mitigated by
+    treating the model-extracted `date` field as cosmetic, never
+    load-bearing — `captured_at` is the reliable, system-set timestamp).
+26. **Bracket/brace grouping.** When handwriting visually groups several
+    lines with a bracket, render them as a nested indented list rather
+    than a fenced code block — a code block would turn any `- [ ]`
+    checkbox or `**bold**` inside it into inert literal text, breaking
+    the TODO-tracking goal. See [docs/note-format.md](note-format.md).
 
 ## Open Questions
 Still need answers — flagging these so we can work through them:
 
-- **Exact VLM to use:** shortlist is Qwen2.5-VL and MiniCPM-V (both
-  Apache-2.0, both have document/OCR strengths) — needs empirical
-  validation against real handwriting samples and current llama.cpp
-  multimodal support before pinning one. See
-  [docs/model-pipeline.md](model-pipeline.md).
 - **Multi-page continuation feedback loop:** how does a user fix it when
   the automatic continuation guess (item 21) is wrong — relink two notes,
   or split a wrongly-merged one? Deferred.

@@ -36,12 +36,12 @@ can keep feeding in pages while earlier ones are still processing:
 1. **Ingest** — a captured or imported image is written into the notebook's
    `pending_processing/` folder (queued), not processed synchronously.
 2. **Background processing** — a worker in the main process pulls the next
-   queued image and runs it through a local VLM, embedded via
-   `node-llama-cpp` (CUDA/Metal/CPU backend depending on platform — see
-   [model-pipeline.md](model-pipeline.md)), prompted with the transcription
-   rules in [note-format.md](note-format.md) to produce markdown including
-   YAML frontmatter and automatic multi-page continuation linking. Exact
-   model still TBD.
+   queued image and runs it through a local VLM (**Qwen2.5-VL, 7B**),
+   embedded via `node-llama-cpp` (CUDA/Metal/CPU backend depending on
+   platform — see [model-pipeline.md](model-pipeline.md)), prompted with
+   the transcription rules in [note-format.md](note-format.md) to produce
+   markdown including YAML frontmatter and automatic multi-page
+   continuation linking.
 3. **Commit** — the worker writes the note's `.md` file and moves the
    source image into the notebook's images folder, both under the shared
    `[notebook name]_[incrementing id]` name. This flips the note's already-

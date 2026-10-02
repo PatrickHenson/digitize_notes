@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
+const NUM_CTX = parseInt(process.env.NUM_CTX || '8192', 10);
 const MODELS = (process.env.MODELS || 'qwen2.5vl:7b,minicpm-v')
   .split(',')
   .map((s) => s.trim())
@@ -67,6 +68,7 @@ async function transcribe(model, imagePath) {
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: 'Transcribe this page.', images: [imageB64] },
       ],
+      options: { num_ctx: NUM_CTX },
     }),
   });
   if (!res.ok) {
