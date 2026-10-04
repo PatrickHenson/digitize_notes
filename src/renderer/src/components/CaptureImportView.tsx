@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { NotebookSummary } from '@shared/notebook'
 import type { QueuedPage } from '@shared/capture'
+import { containerRectToVideoSourceRect, DEFAULT_CROP_RECT } from '../lib/cropGeometry'
+import CropOverlay from './CropOverlay'
 
 interface CaptureImportViewProps {
   notebook: NotebookSummary
@@ -9,10 +11,14 @@ interface CaptureImportViewProps {
 
 function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React.JSX.Element {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const previewRef = useRef<HTMLDivElement>(null)
   const [cameraError, setCameraError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [importing, setImporting] = useState(false)
   const [queued, setQueued] = useState<QueuedPage[]>([])
+  // Persists across captures within this session (component lifetime) —
+  // the camera-to-page setup doesn't usually change page to page.
+  const [cropRect, setCropRect] = useState(DEFAULT_CROP_RECT)
 
   useEffect(() => {
     let stream: MediaStream | null = null
@@ -34,12 +40,21 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
 
   const handleCapture = useCallback(async (): Promise<void> => {
     const video = videoRef.current
-    if (!video || !video.videoWidth) return
+    const bounds = previewRef.current?.getBoundingClientRect()
+    if (!video || !video.videoWidth || !bounds) return
+
+    const { sx, sy, sWidth, sHeight } = containerRectToVideoSourceRect(
+      cropRect,
+      bounds.width,
+      bounds.height,
+      video.videoWidth,
+      video.videoHeight
+    )
 
     const canvas = document.createElement('canvas')
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-    canvas.getContext('2d')?.drawImage(video, 0, 0)
+    canvas.width = sWidth
+    canvas.height = sHeight
+    canvas.getContext('2d')?.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight)
 
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
     if (!blob) return
@@ -52,7 +67,7 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
     } catch (err) {
       setActionError(err instanceof Error ? err.message : String(err))
     }
-  }, [notebook.path, notebook.title])
+  }, [notebook.path, notebook.title, cropRect])
 
   // Space/Enter trigger a capture, except when a button (or other
   // interactive element) has focus — then let it handle the key itself,
@@ -92,13 +107,21 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
         <button onClick={onClose}>Close Notebook</button>
       </div>
 
-      <div className="camera-preview">
+      <div className="camera-preview" ref={previewRef}>
         {cameraError ? (
           <p className="error">Camera unavailable: {cameraError}</p>
         ) : (
-          <video ref={videoRef} autoPlay muted playsInline />
+          <>
+            <video ref={videoRef} autoPlay muted playsInline />
+            <CropOverlay rect={cropRect} onChange={setCropRect} />
+          </>
         )}
       </div>
+      {!cameraError && (
+        <p className="shortcut-hint">
+          Drag the guide to frame the page — only what&apos;s inside it gets saved.
+        </p>
+      )}
 
       <div className="actions-row">
         <button onClick={handleCapture} disabled={Boolean(cameraError)}>

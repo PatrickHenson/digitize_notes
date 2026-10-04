@@ -114,6 +114,7 @@ button:disabled {
 }
 
 .camera-preview {
+  position: relative;
   aspect-ratio: 4 / 3;
   background: var(--ev-c-black-soft);
   border-radius: 8px;
@@ -127,6 +128,52 @@ button:disabled {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.crop-overlay {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+}
+
+.crop-rect {
+  position: absolute;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+  cursor: move;
+}
+
+.crop-handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.crop-handle-nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+
+.crop-handle-ne {
+  top: 0;
+  left: 100%;
+  cursor: nesw-resize;
+}
+
+.crop-handle-sw {
+  top: 100%;
+  left: 0;
+  cursor: nesw-resize;
+}
+
+.crop-handle-se {
+  top: 100%;
+  left: 100%;
+  cursor: nwse-resize;
 }
 
 .thumbnail-strip {
