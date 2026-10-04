@@ -19,6 +19,12 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
   // Persists across captures within this session (component lifetime) —
   // the camera-to-page setup doesn't usually change page to page.
   const [cropRect, setCropRect] = useState(DEFAULT_CROP_RECT)
+  // Increments on every successful capture; the flash element is keyed by
+  // it so React remounts a fresh node each time, restarting the CSS
+  // animation (toggling a class instead wouldn't restart it on back-to-back
+  // captures unless the old class removal and new one land in separate
+  // paints).
+  const [flashKey, setFlashKey] = useState(0)
 
   useEffect(() => {
     let stream: MediaStream | null = null
@@ -64,6 +70,7 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
       const imageData = await blob.arrayBuffer()
       const page = await window.api.capture.queueImage(notebook.path, notebook.title, imageData)
       setQueued((prev) => [...prev, page])
+      setFlashKey((key) => key + 1)
     } catch (err) {
       setActionError(err instanceof Error ? err.message : String(err))
     }
@@ -150,6 +157,8 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
           ))}
         </div>
       )}
+
+      {flashKey > 0 && <div key={flashKey} className="capture-flash" />}
     </div>
   )
 }

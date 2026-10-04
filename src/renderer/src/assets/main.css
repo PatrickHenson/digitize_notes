@@ -103,7 +103,28 @@ button:disabled {
 }
 
 .capture-screen {
+  position: relative;
   max-width: 640px;
+}
+
+.capture-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  border: 3px solid white;
+  animation: capture-flash-fade 10ms ease-out forwards;
+}
+
+@keyframes capture-flash-fade {
+  from {
+    background: rgba(255, 255, 255, 0.5);
+    border-color: rgba(255, 255, 255, 1);
+  }
+  to {
+    background: rgba(255, 255, 255, 0);
+    border-color: rgba(255, 255, 255, 0);
+  }
 }
 
 .capture-header {
