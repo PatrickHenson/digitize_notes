@@ -1,8 +1,16 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import type { CreateNotebookInput, NotebookSummary } from '../shared/notebook'
 
-// Custom APIs for renderer
-const api = {}
+const api = {
+  notebook: {
+    selectParentDirectory: (): Promise<string | null> =>
+      ipcRenderer.invoke('dialog:selectParentDirectory'),
+    create: (input: CreateNotebookInput): Promise<NotebookSummary> =>
+      ipcRenderer.invoke('notebook:create', input),
+    promptOpen: (): Promise<NotebookSummary | null> => ipcRenderer.invoke('notebook:promptOpen')
+  }
+}
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
@@ -20,3 +28,5 @@ if (process.contextIsolated) {
   // @ts-ignore (define in dts)
   window.api = api
 }
+
+export type Api = typeof api
