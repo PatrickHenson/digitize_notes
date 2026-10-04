@@ -4,6 +4,7 @@ import type { QueuedPage } from '@shared/capture'
 import { containerRectToVideoSourceRect, DEFAULT_CROP_RECT } from '../lib/cropGeometry'
 import type { Rotation } from '../lib/cropGeometry'
 import CropOverlay from './CropOverlay'
+import { RotateIcon, UploadIcon } from './icons'
 
 interface CaptureImportViewProps {
   notebook: NotebookSummary
@@ -145,31 +146,36 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
           </>
         )}
       </div>
-      {!cameraError && (
-        <p className="shortcut-hint">
-          Drag the guide to frame the page — only what&apos;s inside it gets saved.
-        </p>
-      )}
-
       <div className="actions-row">
         <button onClick={handleCapture} disabled={Boolean(cameraError)}>
           Capture
         </button>
-        <button onClick={handleImport} disabled={importing}>
-          {importing ? 'Importing…' : 'Import Images…'}
+        <button
+          className="icon-button"
+          onClick={handleImport}
+          disabled={importing}
+          aria-label="Import Images"
+          title="Import Images"
+        >
+          <UploadIcon />
         </button>
-        <button onClick={handleRotate} disabled={Boolean(cameraError)}>
-          Rotate
+        <button
+          className="icon-button"
+          onClick={handleRotate}
+          disabled={Boolean(cameraError)}
+          aria-label="Rotate"
+          title="Rotate"
+        >
+          <RotateIcon />
         </button>
-        <span className="shortcut-hint">Space or Enter to capture</span>
       </div>
 
       {actionError && <p className="error">{actionError}</p>}
 
-      <p className="placeholder-note">
-        Queued this session: {queued.length}. These sit in pending_processing/ until the background
-        processing worker (not built yet) picks them up.
-      </p>
+      <div className="capture-status">
+        <p className="placeholder-note">Queued for processing: {queued.length}</p>
+        <p className="shortcut-hint">Press [space] or [enter] to capture an image.</p>
+      </div>
 
       {queued.length > 0 && (
         <div className="thumbnail-strip">

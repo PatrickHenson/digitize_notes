@@ -56,6 +56,22 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.icon-button {
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.capture-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .field {
   display: flex;
   flex-direction: column;
