@@ -88,7 +88,7 @@ function CreateNotebookForm({ onCreated, onCancel }: CreateNotebookFormProps): R
 
       <div className="field-row">
         <label className="field">
-          <span>Date (optional)</span>
+          <span>Start Date (optional)</span>
           <input
             type="date"
             value={startDate}
@@ -97,7 +97,7 @@ function CreateNotebookForm({ onCreated, onCancel }: CreateNotebookFormProps): R
         </label>
 
         <label className="field">
-          <span>End date (optional, for a range)</span>
+          <span>End Date (optional)</span>
           <input
             type="date"
             value={endDate}
