@@ -13,7 +13,7 @@ function NotebookOpened({ notebook, onClose }: NotebookOpenedProps): React.JSX.E
         <dt>Location</dt>
         <dd>{notebook.path}</dd>
         <dt>Date</dt>
-        <dd>{notebook.date}</dd>
+        <dd>{notebook.date ?? '—'}</dd>
         <dt>Tags</dt>
         <dd>{notebook.tags.length > 0 ? notebook.tags.join(', ') : '—'}</dd>
       </dl>

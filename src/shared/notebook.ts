@@ -5,13 +5,15 @@ export interface NotebookSummary {
   title: string
   path: string
   tags: string[]
-  date: string
+  date?: string
 }
 
 export interface CreateNotebookInput {
   parentDir: string
   title: string
   tags: string
+  startDate: string
+  endDate: string
 }
 
 // Characters invalid on Windows/macOS/Linux paths, per decisions.md
@@ -44,4 +46,21 @@ export function parseTags(input: string): string[] {
         .filter(Boolean)
     )
   )
+}
+
+export function todayIso(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+// A notebook's date is a single date, a date range, or absent entirely —
+// see docs/note-format.md "Title page". Both start and end are optional;
+// nothing is defaulted or fabricated. Returns undefined when there's no
+// date at all, so the frontmatter can omit the field rather than force a
+// value the user didn't ask for.
+export function formatDateRange(startDate: string, endDate: string): string | undefined {
+  const start = startDate.trim()
+  const end = endDate.trim()
+  if (!start) return undefined
+  if (!end || end === start) return start
+  return `${start} – ${end}`
 }

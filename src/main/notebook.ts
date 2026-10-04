@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs'
 import { join } from 'path'
 import type { CreateNotebookInput, NotebookSummary } from '../shared/notebook'
-import { parseTags, sanitizeTitle } from '../shared/notebook'
+import { formatDateRange, parseTags, sanitizeTitle } from '../shared/notebook'
 
 // See docs/note-format.md "Title page" and docs/requirements.md item 7 for
 // the notebook directory layout this implements:
@@ -14,13 +14,10 @@ function titlePagePath(notebookDir: string, title: string): string {
   return join(notebookDir, `${title}.md`)
 }
 
-function serializeTitlePage(title: string, date: string, tags: string[]): string {
+function serializeTitlePage(title: string, date: string | undefined, tags: string[]): string {
   const tagsLine = `[${tags.map((tag) => JSON.stringify(tag)).join(', ')}]`
-  return `---\ntitle: ${JSON.stringify(title)}\ndate: ${date}\ntags: ${tagsLine}\n---\n\n`
-}
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
+  const dateLine = date ? `\ndate: ${date}` : ''
+  return `---\ntitle: ${JSON.stringify(title)}${dateLine}\ntags: ${tagsLine}\n---\n\n`
 }
 
 export async function createNotebook(input: CreateNotebookInput): Promise<NotebookSummary> {
@@ -36,7 +33,7 @@ export async function createNotebook(input: CreateNotebookInput): Promise<Notebo
     throw new Error(`"${title}" already exists in that folder.`)
   }
 
-  const date = todayIso()
+  const date = formatDateRange(input.startDate, input.endDate)
   await fs.mkdir(join(notebookDir, 'images'), { recursive: true })
   await fs.mkdir(join(notebookDir, 'pending_processing'), { recursive: true })
   await fs.writeFile(
@@ -65,7 +62,7 @@ export async function openNotebook(notebookDir: string): Promise<NotebookSummary
     title: frontmatter.title ?? dirName,
     path: notebookDir,
     tags: frontmatter.tags ?? [],
-    date: frontmatter.date ?? todayIso()
+    date: frontmatter.date
   }
 }
 
@@ -82,8 +79,8 @@ function parseTitlePageFrontmatter(raw: string): {
     const titleMatch = line.match(/^title:\s*"(.*)"$/)
     if (titleMatch) result.title = titleMatch[1]
 
-    const dateMatch = line.match(/^date:\s*(\S+)$/)
-    if (dateMatch) result.date = dateMatch[1]
+    const dateMatch = line.match(/^date:\s*(.+)$/)
+    if (dateMatch) result.date = dateMatch[1].trim()
 
     const tagsMatch = line.match(/^tags:\s*\[(.*)\]$/)
     if (tagsMatch) {
