@@ -131,7 +131,7 @@ break ties when a design choice isn't otherwise obvious:
     known non-blocking limitation remains: inconsistent symbol-to-markdown
     mapping on messy handwriting (needs few-shot prompting at
     implementation time). See [docs/model-pipeline.md](model-pipeline.md).
-27. **Date extraction is deterministic, not model-generated.** The model
+26. **Date extraction is deterministic, not model-generated.** The model
     only transcribes the header line verbatim; a date is extracted by
     regex against that verbatim text and normalized to ISO 8601, with a
     missing year filled from the real capture timestamp. If no date-shaped
@@ -140,11 +140,19 @@ break ties when a design choice isn't otherwise obvious:
     real, verified fabrication bug (the model previously invented a
     plausible date on a page that had none, despite being told not to).
     See [docs/note-format.md](note-format.md).
-26. **Bracket/brace grouping.** When handwriting visually groups several
+27. **Bracket/brace grouping.** When handwriting visually groups several
     lines with a bracket, render them as a nested indented list rather
     than a fenced code block — a code block would turn any `- [ ]`
     checkbox or `**bold**` inside it into inert literal text, breaking
     the TODO-tracking goal. See [docs/note-format.md](note-format.md).
+28. **Personal vocabulary / dictionary.** A growing, global (not
+    per-notebook) dictionary of shorthand/technical terms. Backs the
+    Review/Edit pane's spellcheck (autocorrect stays off entirely — too
+    risky for jargon). Also feeds a capped (~30 term), notebook-relevance-
+    ranked hint into the VLM prompt to improve transcription accuracy on
+    recurring vocabulary, hedged so the model doesn't force-match a
+    hinted term over what's actually written. See
+    [docs/model-pipeline.md](model-pipeline.md) for the full algorithm.
 
 ## Open Questions
 Still need answers — flagging these so we can work through them:

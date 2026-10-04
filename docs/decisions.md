@@ -244,3 +244,19 @@ necessary. See [licensing.md](licensing.md).
 **Why:** This project is published under Apache-2.0; copyleft dependencies
 bundled into the distributed app risk relicensing the whole distributed
 work.
+
+## 2026-10-03 — Global dictionary, capped per-notebook-ranked prompt hint
+**Decision:** A personal vocabulary/dictionary of shorthand and technical
+jargon is stored once globally (not duplicated per notebook). It backs
+Review/Edit spellcheck (autocorrect stays off entirely) and feeds a
+capped (~30 term, to validate empirically), notebook-relevance-ranked,
+explicitly-hedged hint into the VLM prompt. See
+[model-pipeline.md](model-pipeline.md) for the full build algorithm.
+**Why:** Per-notebook dictionaries would avoid prompt-context bloat but
+force duplicating common jargon (e.g. "VESTA") across every notebook that
+uses it. A single global store with ranked, capped injection per request
+gets both properties: no duplication, and prompt context that stays
+small and relevant. The cap exists because vocabulary hints share context
+budget with the image itself (a real sample already used ~4,400 tokens)
+and because long hint lists both dilute model attention and risk biasing
+the model toward a hinted term that isn't actually what's written.

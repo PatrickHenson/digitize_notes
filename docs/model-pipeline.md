@@ -95,3 +95,61 @@ See [../eval/](../eval/) for a small local harness (via Ollama) that runs
 sample page images through each candidate model and saves outputs for
 side-by-side comparison. Sample images and results are git-ignored —
 real/confidential handwriting samples never get committed.
+
+## Personal vocabulary / dictionary hint
+The user's notes lean on shorthand and technical jargon/acronyms (e.g.
+"VESTA", "MCAP", "ViQi") that a general-purpose VLM will sometimes
+mis-transcribe (confirmed during evaluation — see above). A growing
+personal dictionary feeds known terms back into the prompt to improve
+accuracy on recurring vocabulary, and separately backs the Review/Edit
+pane's spellcheck (see [note-format.md](note-format.md) / requirements).
+
+**Storage:** one global `dictionary.json` in the app's user-data
+directory (not per-notebook — avoids duplicating common terms across
+notebooks). Each entry: `{ term, usageCount, addedAt, lastUsedAt }`.
+Adding a term that already exists increments `usageCount` rather than
+creating a duplicate — reusing a term across notebooks reinforces it
+instead of re-entering it.
+
+**Why not inject the whole dictionary every time:** both a hard limit
+(the image itself already consumes significant context — a real sample
+page hit ~4,400 tokens before raising `num_ctx`) and a soft one
+(long lists dilute model attention — "lost in the middle" — and can bias
+the model toward false-positive matches on a hinted term that isn't
+actually what's written). No hard data for this specific model/task yet;
+default cap is 30 terms per request, to be validated empirically via
+`eval/` once built, not assumed.
+
+**Building the capped hint list, per page processed:**
+1. Dictionary is loaded once into memory by the background worker at
+   startup (not re-read from disk per page); writes update both the file
+   and the in-memory cache.
+2. Each notebook gets an in-memory (session-scoped, not persisted)
+   `Set<string>` of dictionary terms that already appear in that
+   notebook's committed notes — built once on notebook open via a cheap
+   word-boundary match against its existing note text, then updated
+   incrementally (just the newly-committed note, not a full rescan) each
+   time a page finishes processing.
+3. Rank candidates for the page about to be processed: **tier 1** —
+   terms in that notebook's relevant-term set, sorted by `usageCount`
+   descending; **tier 2** — remaining dictionary terms, sorted by
+   `usageCount` descending, filling any slots left after tier 1.
+4. Take the top 30 (tier 1 first, then tier 2) and format as an
+   explicitly hedged hint — not a command — e.g.: "Terms that may appear
+   on this page, for reference only — transcribe literally what's written
+   even if it doesn't match one of these: VESTA, MCAP, ViQi, …". The
+   hedge is the guard against false-positive bias.
+5. Include that hint alongside the existing system prompt and image in
+   the same VLM call used today.
+
+**Closing the loop:** the Review/Edit pane's "Add to dictionary" action
+(on a spellcheck-flagged word) is what writes to `dictionary.json` — new
+term inserted at `usageCount: 1`, existing term's `usageCount`
+incremented and `lastUsedAt` updated. The current notebook's in-memory
+relevant-term set is updated immediately too, so the next page processed
+in that notebook benefits without waiting for anything to rebuild.
+
+**Editor behavior this pairs with:** autocorrect (silent text rewriting)
+is off entirely — too risky for shorthand/jargon in notes meant to stay
+searchable and agent-readable. Spellcheck (underline-only) stays on,
+backed by this same dictionary so recognized terms stop being flagged.
