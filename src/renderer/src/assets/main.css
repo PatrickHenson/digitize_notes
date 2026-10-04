@@ -103,8 +103,59 @@ button:disabled {
 }
 
 .capture-screen {
-  position: relative;
   max-width: 640px;
+}
+
+.capture-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.camera-preview {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--ev-c-black-soft);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  container-type: size;
+}
+
+/* Rotates the live video for a permanently upside-down/sideways camera
+   mount. The crop guide (.crop-overlay) is a sibling, not a child, of
+   this — it always stays in plain unrotated screen space, both visually
+   and for its own drag math; only the video display rotates. See
+   cropGeometry.ts for how a crop made in that plain space still maps
+   back to the right source-video pixels. */
+.camera-stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%) rotate(var(--rotation, 0deg));
+}
+
+/* A 90/270 rotation needs the stage's own box swapped (tall<->wide) so
+   that after rotating it fills the container again — expressed with
+   container query units (cqw/cqh reference this element's nearest
+   container-type:size ancestor, i.e. .camera-preview) since there's no
+   plain-percentage way to size an element against its parent's *other*
+   axis. */
+.camera-stage-rotated {
+  width: 100cqh;
+  height: 100cqw;
+}
+
+.camera-stage video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .capture-flash {
@@ -125,30 +176,6 @@ button:disabled {
     background: rgba(255, 255, 255, 0);
     border-color: rgba(255, 255, 255, 0);
   }
-}
-
-.capture-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.camera-preview {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  background: var(--ev-c-black-soft);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.camera-preview video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .crop-overlay {

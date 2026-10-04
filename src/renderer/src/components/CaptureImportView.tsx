@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { NotebookSummary } from '@shared/notebook'
 import type { QueuedPage } from '@shared/capture'
 import { containerRectToVideoSourceRect, DEFAULT_CROP_RECT } from '../lib/cropGeometry'
+import type { Rotation } from '../lib/cropGeometry'
 import CropOverlay from './CropOverlay'
 
 interface CaptureImportViewProps {
@@ -19,6 +20,11 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
   // Persists across captures within this session (component lifetime) —
   // the camera-to-page setup doesn't usually change page to page.
   const [cropRect, setCropRect] = useState(DEFAULT_CROP_RECT)
+  // Persists across captures too — a permanently upside-down or sideways
+  // camera mount doesn't change page to page either. Only the video
+  // display rotates; the crop guide stays in plain screen space (see
+  // cropGeometry.ts's containerRectToVideoSourceRect for why that's safe).
+  const [rotation, setRotation] = useState<Rotation>(0)
   // Increments on every successful capture; the flash element is keyed by
   // it so React remounts a fresh node each time, restarting the CSS
   // animation (toggling a class instead wouldn't restart it on back-to-back
@@ -54,7 +60,8 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
       bounds.width,
       bounds.height,
       video.videoWidth,
-      video.videoHeight
+      video.videoHeight,
+      rotation
     )
 
     const canvas = document.createElement('canvas')
@@ -74,7 +81,11 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
     } catch (err) {
       setActionError(err instanceof Error ? err.message : String(err))
     }
-  }, [notebook.path, notebook.title, cropRect])
+  }, [notebook.path, notebook.title, cropRect, rotation])
+
+  const handleRotate = useCallback((): void => {
+    setRotation((prev) => ((prev + 90) % 360) as Rotation)
+  }, [])
 
   // Space/Enter trigger a capture, except when a button (or other
   // interactive element) has focus — then let it handle the key itself,
@@ -119,8 +130,18 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
           <p className="error">Camera unavailable: {cameraError}</p>
         ) : (
           <>
-            <video ref={videoRef} autoPlay muted playsInline />
+            <div
+              className={
+                rotation === 90 || rotation === 270
+                  ? 'camera-stage camera-stage-rotated'
+                  : 'camera-stage'
+              }
+              style={{ '--rotation': `${rotation}deg` } as React.CSSProperties}
+            >
+              <video ref={videoRef} autoPlay muted playsInline />
+            </div>
             <CropOverlay rect={cropRect} onChange={setCropRect} />
+            {flashKey > 0 && <div key={flashKey} className="capture-flash" />}
           </>
         )}
       </div>
@@ -136,6 +157,9 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
         </button>
         <button onClick={handleImport} disabled={importing}>
           {importing ? 'Importing…' : 'Import Images…'}
+        </button>
+        <button onClick={handleRotate} disabled={Boolean(cameraError)}>
+          Rotate
         </button>
         <span className="shortcut-hint">Space or Enter to capture</span>
       </div>
@@ -157,8 +181,6 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
           ))}
         </div>
       )}
-
-      {flashKey > 0 && <div key={flashKey} className="capture-flash" />}
     </div>
   )
 }

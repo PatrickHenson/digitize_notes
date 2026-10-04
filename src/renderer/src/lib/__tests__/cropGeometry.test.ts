@@ -97,4 +97,49 @@ describe('containerRectToVideoSourceRect', () => {
     )
     expect(result).toEqual({ sx: 200, sy: 150, sWidth: 400, sHeight: 300 })
   })
+
+  it('a full-frame crop always maps to the full video, at any rotation', () => {
+    for (const rotation of [0, 90, 180, 270] as const) {
+      const [videoWidth, videoHeight] =
+        rotation === 90 || rotation === 270 ? [600, 800] : [800, 600]
+      const result = containerRectToVideoSourceRect(
+        { x: 0, y: 0, width: 100, height: 100 },
+        800,
+        600,
+        videoWidth,
+        videoHeight,
+        rotation
+      )
+      expect(result).toEqual({ sx: 0, sy: 0, sWidth: videoWidth, sHeight: videoHeight })
+    }
+  })
+
+  it('180 degrees flips the sub-rect to the opposite corner', () => {
+    // Top-left quarter of a 180-rotated display should map to the
+    // bottom-right quarter of the (unrotated) source video.
+    const result = containerRectToVideoSourceRect(
+      { x: 0, y: 0, width: 50, height: 50 },
+      800,
+      600,
+      800,
+      600,
+      180
+    )
+    expect(result).toEqual({ sx: 400, sy: 300, sWidth: 400, sHeight: 300 })
+  })
+
+  it('90 degrees clockwise maps a displayed top-left sub-rect to the stage bottom-left', () => {
+    // Rotating a rectangle 90deg clockwise sends its bottom-left corner to
+    // the top-left of the display — so what's displayed top-left came
+    // from the source's bottom-left.
+    const result = containerRectToVideoSourceRect(
+      { x: 0, y: 0, width: 50, height: 50 },
+      800,
+      600,
+      600,
+      800,
+      90
+    )
+    expect(result).toEqual({ sx: 0, sy: 400, sWidth: 300, sHeight: 400 })
+  })
 })

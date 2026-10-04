@@ -82,31 +82,80 @@ export interface SourceRect {
   sHeight: number
 }
 
-// Maps a container-percent rect to actual source-video pixel coordinates,
-// accounting for object-fit: cover (the video is uniformly scaled to fill
-// the container, so most of it maps 1:1 but some edges are cropped off —
-// every point within the container always corresponds to a real video
-// pixel, unlike object-fit: contain where letterbox bars would not).
+// Clockwise rotation applied to the live video display (not the crop
+// guide, which always stays in plain unrotated container space — see
+// CaptureImportView.tsx). For "upside down pages": a permanently
+// upside-down or sideways camera mount needs a persistent correction,
+// not a per-page fix.
+export type Rotation = 0 | 90 | 180 | 270
+
+// Maps a container-percent rect (as the user sees and drags it, in plain
+// unrotated screen space) to actual source-video pixel coordinates.
+//
+// Two things are composed here:
+// 1. Undo the display rotation to find where that rect falls on the
+//    *unrotated* video stage. For a 90-degree-multiple rotation this is
+//    an axis permutation/flip, not real trigonometry — e.g. a 90deg
+//    clockwise display rotation means a point's container-relative
+//    offset (dx, dy) from center came from stage-local offset (dy, -dx)
+//    (verified against CSS's rotate(90deg): a point above center, offset
+//    (0, -h), lands to the right of center, (h, 0); inverting that
+//    forward mapping gives the rule used in ROTATION_INVERSE below).
+//    A rotated stage is also sized to fill the container after rotating,
+//    so 90/270 swap which of the container's width/height the stage's
+//    own width/height correspond to.
+// 2. Apply object-fit: cover's scale/offset (same as the no-rotation
+//    case) using the stage's own size, not the container's, to land on
+//    real source-video pixels.
 export function containerRectToVideoSourceRect(
   rect: Rect,
   containerWidth: number,
   containerHeight: number,
   videoWidth: number,
-  videoHeight: number
+  videoHeight: number,
+  rotation: Rotation = 0
 ): SourceRect {
-  const scale = Math.max(containerWidth / videoWidth, containerHeight / videoHeight)
-  const offsetX = (containerWidth - videoWidth * scale) / 2
-  const offsetY = (containerHeight - videoHeight * scale) / 2
+  const stageWidth = rotation === 90 || rotation === 270 ? containerHeight : containerWidth
+  const stageHeight = rotation === 90 || rotation === 270 ? containerWidth : containerHeight
 
   const containerX = (rect.x / 100) * containerWidth
   const containerY = (rect.y / 100) * containerHeight
   const containerW = (rect.width / 100) * containerWidth
   const containerH = (rect.height / 100) * containerHeight
 
-  return {
-    sx: (containerX - offsetX) / scale,
-    sy: (containerY - offsetY) / scale,
-    sWidth: containerW / scale,
-    sHeight: containerH / scale
+  const toStageCorner = (containerPointX: number, containerPointY: number): [number, number] => {
+    const dx = containerPointX - containerWidth / 2
+    const dy = containerPointY - containerHeight / 2
+    const [stageDx, stageDy] = ROTATION_INVERSE[rotation](dx, dy)
+    return [stageDx + stageWidth / 2, stageDy + stageHeight / 2]
   }
+
+  const [x1, y1] = toStageCorner(containerX, containerY)
+  const [x2, y2] = toStageCorner(containerX + containerW, containerY + containerH)
+  const stageRect = {
+    x: Math.min(x1, x2),
+    y: Math.min(y1, y2),
+    width: Math.abs(x2 - x1),
+    height: Math.abs(y2 - y1)
+  }
+
+  const scale = Math.max(stageWidth / videoWidth, stageHeight / videoHeight)
+  const offsetX = (stageWidth - videoWidth * scale) / 2
+  const offsetY = (stageHeight - videoHeight * scale) / 2
+
+  return {
+    sx: (stageRect.x - offsetX) / scale,
+    sy: (stageRect.y - offsetY) / scale,
+    sWidth: stageRect.width / scale,
+    sHeight: stageRect.height / scale
+  }
+}
+
+// Maps a center-relative (dx, dy) in rotated/display space back to the
+// center-relative offset it came from on the unrotated stage.
+const ROTATION_INVERSE: Record<Rotation, (dx: number, dy: number) => [number, number]> = {
+  0: (dx, dy) => [dx, dy],
+  90: (dx, dy) => [dy, -dx],
+  180: (dx, dy) => [-dx, -dy],
+  270: (dx, dy) => [-dy, dx]
 }
