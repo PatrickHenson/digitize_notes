@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import type { CreateNotebookInput, NotebookSummary } from '../shared/notebook'
+import type { QueuedPage } from '../shared/capture'
 
 const api = {
   notebook: {
@@ -9,6 +10,19 @@ const api = {
     create: (input: CreateNotebookInput): Promise<NotebookSummary> =>
       ipcRenderer.invoke('notebook:create', input),
     promptOpen: (): Promise<NotebookSummary | null> => ipcRenderer.invoke('notebook:promptOpen')
+  },
+  capture: {
+    queueImage: (
+      notebookDir: string,
+      notebookTitle: string,
+      imageData: ArrayBuffer
+    ): Promise<QueuedPage> =>
+      ipcRenderer.invoke('capture:queueImage', notebookDir, notebookTitle, imageData),
+    promptImportImages: (
+      notebookDir: string,
+      notebookTitle: string
+    ): Promise<QueuedPage[] | null> =>
+      ipcRenderer.invoke('capture:promptImportImages', notebookDir, notebookTitle)
   }
 }
 

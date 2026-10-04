@@ -2,9 +2,9 @@ import { useState } from 'react'
 import type { NotebookSummary } from '@shared/notebook'
 import Welcome from './components/Welcome'
 import CreateNotebookForm from './components/CreateNotebookForm'
-import NotebookOpened from './components/NotebookOpened'
+import CaptureImportView from './components/CaptureImportView'
 
-type View = 'welcome' | 'create' | 'opened'
+type View = 'welcome' | 'create' | 'capture'
 
 function App(): React.JSX.Element {
   const [view, setView] = useState<View>('welcome')
@@ -17,7 +17,7 @@ function App(): React.JSX.Element {
       const opened = await window.api.notebook.promptOpen()
       if (opened) {
         setNotebook(opened)
-        setView('opened')
+        setView('capture')
       }
     } catch (err) {
       setWelcomeError(err instanceof Error ? err.message : String(err))
@@ -26,7 +26,7 @@ function App(): React.JSX.Element {
 
   const handleCreated = (created: NotebookSummary): void => {
     setNotebook(created)
-    setView('opened')
+    setView('capture')
   }
 
   const handleClose = (): void => {
@@ -38,8 +38,8 @@ function App(): React.JSX.Element {
     return <CreateNotebookForm onCreated={handleCreated} onCancel={() => setView('welcome')} />
   }
 
-  if (view === 'opened' && notebook) {
-    return <NotebookOpened notebook={notebook} onClose={handleClose} />
+  if (view === 'capture' && notebook) {
+    return <CaptureImportView notebook={notebook} onClose={handleClose} />
   }
 
   return <Welcome onCreate={() => setView('create')} onOpen={handleOpen} error={welcomeError} />

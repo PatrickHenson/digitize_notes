@@ -3,7 +3,9 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { createNotebook, openNotebook } from './notebook'
+import { queueCapturedImage, queueImportedImages } from './capture'
 import type { CreateNotebookInput } from '../shared/notebook'
+import { SUPPORTED_IMPORT_EXTENSIONS } from '../shared/capture'
 
 function createWindow(): void {
   // Create the browser window.
@@ -65,6 +67,24 @@ app.whenReady().then(() => {
     if (result.canceled) return null
     return openNotebook(result.filePaths[0])
   })
+
+  ipcMain.handle(
+    'capture:queueImage',
+    (_event, notebookDir: string, notebookTitle: string, imageData: ArrayBuffer) =>
+      queueCapturedImage(notebookDir, notebookTitle, Buffer.from(imageData))
+  )
+
+  ipcMain.handle(
+    'capture:promptImportImages',
+    async (_event, notebookDir: string, notebookTitle: string) => {
+      const result = await dialog.showOpenDialog({
+        properties: ['openFile', 'multiSelections'],
+        filters: [{ name: 'Images', extensions: SUPPORTED_IMPORT_EXTENSIONS }]
+      })
+      if (result.canceled || result.filePaths.length === 0) return null
+      return queueImportedImages(notebookDir, notebookTitle, result.filePaths)
+    }
+  )
 
   createWindow()
 
