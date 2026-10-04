@@ -122,6 +122,12 @@ button:disabled {
   max-width: 640px;
 }
 
+/* Scoped to this screen only — .actions-row is shared with the
+   notebook-creation form, whose buttons should stay left-aligned. */
+.capture-screen .actions-row {
+  justify-content: center;
+}
+
 .capture-header {
   display: flex;
   align-items: center;
