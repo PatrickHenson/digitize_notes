@@ -71,7 +71,7 @@ function CreateNotebookForm({ onCreated, onCancel }: CreateNotebookFormProps): R
           type="text"
           value={title}
           onChange={(event) => setTitle(stripInvalidTitleChars(event.target.value))}
-          placeholder="e.g. Leadership Notes"
+          placeholder="e.g. Personal Notes"
           autoFocus
         />
       </label>
