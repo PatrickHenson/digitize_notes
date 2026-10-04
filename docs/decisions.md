@@ -274,3 +274,20 @@ small and relevant. The cap exists because vocabulary hints share context
 budget with the image itself (a real sample already used ~4,400 tokens)
 and because long hint lists both dilute model attention and risk biasing
 the model toward a hinted term that isn't actually what's written.
+
+## 2026-10-03 — Added a Code Quality section to AGENTS.md
+**Decision:** AGENTS.md now has an explicit Code Quality section: prefer
+refactoring/reuse over duplication (search before writing new code),
+keep diffs honest (a move reads as a move, not a rewrite that hides
+whether behavior changed), separate refactor commits from feature
+commits, no dead/commented-out code, no silent error swallowing, no
+speculative abstractions, and always verify (typecheck/lint/test/build)
+before calling a task done.
+**Why:** Codified after noticing the value of making these expectations
+explicit rather than relying on each agent/session to apply good
+judgment independently — particularly the diff-hiding concern (a
+copy-paste-based "move" can bury an unintended behavior change inside
+what looks like a pure refactor). Formatting consistency was
+deliberately left out — the linter/formatter (ESLint + Prettier) already
+enforces that mechanically, so a written reminder is redundant. Mirrored
+into the reusable AGENTS.md template.

@@ -39,6 +39,25 @@ application logic yet beyond the default scaffold screen.
 - Keep Electron's three process types clearly separated:
   main (`src/main`), preload (`src/preload`), renderer (`src/renderer`).
 
+## Code Quality
+- Prefer refactoring and extracting reusable functions over duplicating
+  logic — search the codebase for existing similar logic before writing
+  something new.
+- Don't let a diff hide what actually changed: a one-line fix should look
+  like a one-line diff, not a wholesale block rewrite. A code move should
+  read as a move, not a delete-and-paste that obscures whether behavior
+  changed along the way.
+- Keep refactors (move/rename, no behavior change) and feature changes in
+  separate commits — easier to review, easier to revert independently.
+- No dead code or commented-out code left behind — delete it, don't
+  comment it out.
+- No silent error swallowing — surface or log failures; no empty `catch`
+  blocks that hide a real problem.
+- Don't add abstractions, config options, or flexibility for hypothetical
+  future needs — build only what the current task requires.
+- Verify before considering a task done: typecheck, lint, test, and build
+  — don't just eyeball the diff.
+
 ## Architecture
 See [docs/architecture.md](docs/architecture.md) for how the scan → preview →
 digitize pipeline is planned to fit together.
