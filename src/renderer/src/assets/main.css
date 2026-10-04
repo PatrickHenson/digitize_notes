@@ -27,8 +27,14 @@
 
 .actions-row {
   display: flex;
+  align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+.shortcut-hint {
+  font-size: 0.8rem;
+  color: var(--ev-c-text-2);
 }
 
 button {

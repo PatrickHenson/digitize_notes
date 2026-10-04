@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { NotebookSummary } from '@shared/notebook'
 import type { QueuedPage } from '@shared/capture'
 
@@ -32,7 +32,7 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
     }
   }, [])
 
-  const handleCapture = async (): Promise<void> => {
+  const handleCapture = useCallback(async (): Promise<void> => {
     const video = videoRef.current
     if (!video || !video.videoWidth) return
 
@@ -52,7 +52,25 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
     } catch (err) {
       setActionError(err instanceof Error ? err.message : String(err))
     }
-  }
+  }, [notebook.path, notebook.title])
+
+  // Space/Enter trigger a capture, except when a button (or other
+  // interactive element) has focus — then let it handle the key itself,
+  // so e.g. tabbing to "Close Notebook" and pressing Enter still works.
+  useEffect(() => {
+    const INTERACTIVE_TAGS = new Set(['BUTTON', 'INPUT', 'TEXTAREA', 'SELECT'])
+
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== ' ' && event.key !== 'Enter') return
+      if (INTERACTIVE_TAGS.has((event.target as HTMLElement).tagName)) return
+
+      event.preventDefault()
+      void handleCapture()
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleCapture])
 
   const handleImport = async (): Promise<void> => {
     setActionError(null)
@@ -89,6 +107,7 @@ function CaptureImportView({ notebook, onClose }: CaptureImportViewProps): React
         <button onClick={handleImport} disabled={importing}>
           {importing ? 'Importing…' : 'Import Images…'}
         </button>
+        <span className="shortcut-hint">Space or Enter to capture</span>
       </div>
 
       {actionError && <p className="error">{actionError}</p>}
