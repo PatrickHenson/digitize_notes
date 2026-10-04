@@ -5,9 +5,7 @@
 /eval/results/*
 !/eval/results/.gitkeep
 
-# Node/Electron build artifacts (present on disk from the unmerged
-# scaffold-electron-app branch's npm install; not part of this branch's
-# work, kept out regardless of which branch is checked out)
+# Electron app (electron-vite scaffold)
 node_modules
 dist
 out
